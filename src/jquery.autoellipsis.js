@@ -57,7 +57,7 @@
      * @private
      */
     var defaultSettings = {
-                ellipsis: '...',
+                ellipsis: '\u2026',
                 setTitle: 'never',
                 live: false
             };
@@ -125,7 +125,7 @@
 
         // If not, create wrapper element.
         if (!wrapperElement) {
-            wrapperElement = containerElement.wrapInner('<div/>').find('>div');
+            wrapperElement = containerElement.wrapInner('<span/>').find('>span');
         }
 
         // Check if the original wrapper element content was already bound to the wrapper element.
@@ -185,9 +185,10 @@
                         getLastTextNode(selectedElement).get(0).nodeValue += settings.ellipsis;
                         deferAppendEllipsis = false;
                     }
-
+                    var limiter = 0;
                     // Iterate until wrapper element height is less than or equal to the container element height.
                     while (wrapperElement.innerHeight() > containerElement.innerHeight()) {
+                        limiter += 1;
                         // Apply ellipsis on last text node, by removing one word.
                         ellipsisApplied = ellipsisOnLastTextNode(selectedElement);
 
@@ -216,7 +217,6 @@
                             break;
                         }
                     }
-
                     // If the "setTitle" property is set to "onEllipsis" and the ellipsis has been applied, or if the
                     // property is set to "always", the add the "title" attribute with the original text. Else remove the
                     // "title" attribute. When the "setTitle" property is set to "never" we do not touch the "title"
@@ -244,17 +244,23 @@
 
         // If the last text node is found, do ellipsis on that node.
         if (lastTextNode.length) {
-            var text = lastTextNode.get(0).nodeValue;
+            var text = element.attr('data-text');
 
+            if(element.attr('data-text') === undefined){
+                text = lastTextNode.get(0).nodeValue;
+            }
+            
             // Find last space character, and remove text from there. If no space is found the full remaining text is
             // removed.
-            var pos = text.lastIndexOf(' ');
-            if (pos > -1) {
+            var pos = text.length - 1;
+            if (pos > 0) {
                 text = $.trim(text.substring(0, pos));
+               // console.info(text);
                 lastTextNode.get(0).nodeValue = text;
-
+                element.attr('data-text', text);
             } else {
                 lastTextNode.get(0).nodeValue = '';
+                element.attr('data-text', '');
             }
 
             return true;
